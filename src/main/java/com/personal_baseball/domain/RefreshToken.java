@@ -19,8 +19,12 @@ public class RefreshToken {
     @Column(name = "refresh_id")
     private Long refreshId;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", insertable = false, updatable = false)
     private Long userId;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    private User user;
 
     @Column(name = "token", nullable = false, unique = true, length = 500)
     private String token;
