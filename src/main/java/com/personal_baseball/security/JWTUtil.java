@@ -36,8 +36,8 @@ public class JWTUtil {
 
         return Jwts.builder()
                 .claim("userId",userId)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(this.getSigningKey())
                 .compact();
     }
@@ -48,11 +48,28 @@ public class JWTUtil {
 
         return Jwts.builder()
                 .claim("userId",userId)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(this.getSigningKey())
                 .compact();
     }
+
+
+
+    //Token에서 UserId 추출
+        public Long getUserIdFromToken(String token){
+            try{
+                return Jwts.parserBuilder()
+                        .setSigningKey(this.getSigningKey())
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody()
+                        .get("userId", Long.class);
+            } catch (JwtException | IllegalArgumentException e){
+                log.warn("유효하지 않은 토큰입니다. (getUserIdFromToken)");
+                throw new JwtException("유효하지 않은 JWT 토큰입니다.");
+            }
+        }
 
     //Authorization Header에서 Token 추출
     public String getTokenFromHeader(String authorizationHeader){
@@ -64,37 +81,23 @@ public class JWTUtil {
         return authorizationHeader.substring(7);
     }
 
-    //Token에서 UserId 추출
-    public Long getUserIdFromToken(String token){
-        try{
-            return Jwts.parser()
-                    .verifyWith(this.getSigningKey()) //서명 검증
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload()
-                    .get("userId",Long.class);
-        } catch (JwtException | IllegalArgumentException e){
-            log.warn("유효하지 않은 토큰입니다. (getUserIdFromToken)");
-            throw new JwtException("유효하지 않은 JWT 토큰입니다.");
-        }
-    }
-
-
     //Token의 유효기간 확인
     public boolean isTokenExpired(String token){
         try{
-            Date expirationDate = Jwts.parser()
-                    .verifyWith(this.getSigningKey())
+            Date expirationDate = Jwts.parserBuilder()
+                    .setSigningKey(this.getSigningKey())
                     .build()
-                    .parseSignedClaims(token)
-                    .getPayload()
+                    .parseClaimsJws(token)
+                    .getBody()
                     .getExpiration();
+
             return expirationDate.before(new Date());
         } catch (JwtException | IllegalArgumentException e ){
-            log.warn("유효하지 않은 토큰입니다. (isTokenExpired) ");
+            log.warn("유효하지 않은 토큰입니다. (isTokenExpired)");
             throw new JwtException("유효하지 않은 JWT 토큰입니다.");
         }
     }
+
 
 
 
