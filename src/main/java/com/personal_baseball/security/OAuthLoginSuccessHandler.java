@@ -60,7 +60,7 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
             throw new IllegalArgumentException("OAuth2 로그인 요청 오류 : 지원하지 않는 Oauth Provider입니다");
         }
 
-        //정보 추출
+        //User 정보를 Oauth Provider에게서 가져오기
         String platformId = oAuth2UserInfo.getPlatformId();
         String name = oAuth2UserInfo.getUserName();
         String email = oAuth2UserInfo.getEmail();
