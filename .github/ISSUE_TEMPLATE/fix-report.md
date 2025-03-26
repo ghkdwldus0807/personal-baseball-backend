@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: Fix report
 about: Create a report to help us improve
 title: "[FIX]"
 labels: ''
@@ -8,15 +8,15 @@ assignees: ''
 ---
 
 ---
-name: 버그 리포트 (Bug Report)
-about: 버그 발생 시 보고하기 위해 사용합니다.
-title: "[Bug] 버그 내용을 간략히 작성하세요"
-labels: bug
+name: 오류 리포트 (FIX Report)
+about: 오류 발생 시 보고하기 위해 사용합니다.
+title: "[FIX] 버그 내용을 간략히 작성하세요"
+labels: fix
 assignees: ''
 
 ---
 
-## 🐞 버그 설명
+## 📢 오류 설명
 발생한 버그에 대해 간략하고 명확하게 설명하세요.
 
 ## 🔍 재현 방법
@@ -28,6 +28,10 @@ assignees: ''
 
 ## 📌 기대하는 동작
 정상적으로 작동할 경우의 예상 동작을 설명하세요.
+
+- [ ] 구현할 작업 목록을 작성하세요. (예: API 설계)
+- [ ] 테스트 코드 작성
+- [ ] 문서화 작업
 
 ## 📋 환경 정보 (선택사항)
 - OS: (예: Windows, macOS, Ubuntu)
