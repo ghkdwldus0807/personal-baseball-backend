@@ -1,5 +1,6 @@
 package com.personal_baseball.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -57,19 +58,29 @@ public class JWTUtil {
 
 
     //Token에서 UserId 추출
-        public Long getUserIdFromToken(String token){
-            try{
-                return Jwts.parserBuilder()
-                        .setSigningKey(this.getSigningKey())
-                        .build()
-                        .parseClaimsJws(token)
-                        .getBody()
-                        .get("userId", Long.class);
-            } catch (JwtException | IllegalArgumentException e){
-                log.warn("유효하지 않은 토큰입니다. (getUserIdFromToken)");
-                throw new JwtException("유효하지 않은 JWT 토큰입니다.");
-            }
+    public Long getUserIdFromToken(String token){
+        try{
+            //토큰이 유효한 경우
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(this.getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            return claims.get("userId", Long.class);
         }
+        catch (io.jsonwebtoken.ExpiredJwtException e){
+            //만료된 토큰의 경우
+            log.debug("만료된 토큰입니다. claims에서 userId를 추출합니다.");
+            return e.getClaims().get("userId",Long.class);
+        }
+
+        catch (JwtException | IllegalArgumentException e){
+            log.warn("유효하지 않은 토큰입니다. (getUserIdFromToken)");
+            throw new JwtException("유효하지 않은 JWT 토큰입니다.");
+        }
+    }
+
 
     //Authorization Header에서 Token 추출
     public String getTokenFromHeader(String authorizationHeader){
@@ -82,8 +93,8 @@ public class JWTUtil {
     }
 
     //Token의 유효기간 확인
-    public boolean isTokenExpired(String token){
-        try{
+    public boolean isTokenExpired(String token) {
+        try {
             Date expirationDate = Jwts.parserBuilder()
                     .setSigningKey(this.getSigningKey())
                     .build()
@@ -91,12 +102,19 @@ public class JWTUtil {
                     .getBody()
                     .getExpiration();
 
+            log.debug("토큰 만료 여부 확인 중, 전달된 토큰: {}", token);
             return expirationDate.before(new Date());
-        } catch (JwtException | IllegalArgumentException e ){
+
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            log.debug("Access Token이 만료되었습니다.");
+            return true; // 만료된 경우 true 반환
+
+        } catch (JwtException | IllegalArgumentException e) {
             log.warn("유효하지 않은 토큰입니다. (isTokenExpired)");
             throw new JwtException("유효하지 않은 JWT 토큰입니다.");
         }
     }
+
 
 
 

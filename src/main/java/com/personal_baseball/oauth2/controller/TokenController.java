@@ -1,16 +1,17 @@
 package com.personal_baseball.oauth2.controller;
 
 import com.personal_baseball.oauth2.service.TokenService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/oauth")
@@ -21,18 +22,21 @@ public class TokenController {
     private final TokenService tokenService;
 
     @PostMapping("/reissueToken")
-    public ResponseEntity<?> reissueAccessToken(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> reissueAccessToken(HttpServletRequest request) {
 
-        String refreshToken = request.get("refreshToken");
+        //Authorization Header에서 access Token 추출
+        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if(authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Access Token이 제공되지 않았습니다.");
+        }
 
-        //refreshToken 재발급
-        String newAccessToken = tokenService.reissueAccessToken(refreshToken);
+        String accessToKen = authorizationHeader.substring(7);
 
-        //Frontend에게 새로운 액세스 토큰 반환
-        Map<String,String> response = new HashMap<>();
-        response.put("accessToken",newAccessToken);
+        //Access Token 재발급
+        String newAccessToken = tokenService.reissueAccessTokenUsingAccessToken(accessToKen);
 
-        return ResponseEntity.ok(response);
+        //Authorization Header에 새로 발급된 Access Token을 담아 전달
+        return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION,"Bearer "+newAccessToken).build();
 
     }
 
