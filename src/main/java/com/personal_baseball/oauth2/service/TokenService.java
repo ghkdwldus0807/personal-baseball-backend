@@ -22,6 +22,36 @@ public class TokenService {
     private final JWTUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    public String reissueAccessTokenUsingAccessToken(String accessToken){
+        Long userId;
+
+        try{
+            userId = jwtUtil.getUserIdFromToken(accessToken);
+        } catch (JwtException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 Access Token입니다.");
+        }
+
+        Optional<RefreshToken> savedRefreshToken = refreshTokenRepository.findByUserId(userId);
+
+        //DB에 Refresh Token이 없을 때
+        if(savedRefreshToken.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh Token이 존재하지 않습니다");
+        }
+
+        RefreshToken refreshToken = savedRefreshToken.get();
+
+        //RefreshToken의 유효기간이 지났을 경우
+        if(refreshToken.getExpiryDate().isBefore(Instant.now())){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "refresh token이 만료되었습니다.");
+        }
+
+        log.info("Access Token이 재 발급 되었습니다. userId : {}",userId);
+
+        return jwtUtil.generateAccessToken(userId);
+
+    }
+
+
     public String reissueAccessToken(String refreshToken){
 
         if(refreshToken == null || refreshToken.isEmpty()){
