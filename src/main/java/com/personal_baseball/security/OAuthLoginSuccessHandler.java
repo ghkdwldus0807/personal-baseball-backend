@@ -106,7 +106,7 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
 
         //프론트엔드로 리다이렉트
         String encodedName = URLEncoder.encode(name, StandardCharsets.UTF_8);
-        String redirectUri = String.format(REDIRECT_URI, encodedName,accessToken, refreshToken);
+        String redirectUri = String.format(REDIRECT_URI, encodedName,accessToken);
 
         log.info("리다이렉트 URI : {}", redirectUri);
         getRedirectStrategy().sendRedirect(request,response,redirectUri);
